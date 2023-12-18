@@ -12,7 +12,7 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const requestBody = event.body;
+  const requestBody = JSON.parse(event.body);
   const { projectID, email } = requestBody;
 
   try {

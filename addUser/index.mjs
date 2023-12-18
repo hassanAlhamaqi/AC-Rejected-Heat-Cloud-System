@@ -11,7 +11,9 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const { email, name, phone, projects, fieldsOfExpertise } = event.body;
+  const { email, name, phone, projects, fieldsOfExpertise } = JSON.parse(
+    event.body
+  );
   if (!email) {
     return {
       statusCode: "400",

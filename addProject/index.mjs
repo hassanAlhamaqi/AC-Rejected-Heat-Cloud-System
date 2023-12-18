@@ -12,7 +12,7 @@ export const handler = async (event) => {
   };
 
   try {
-    const project = event.body;
+    const project = JSON.parse(event.body);
     project.participants.push(project.ownerID);
     // Add the project to the Projects table
     body = await dynamo.put({

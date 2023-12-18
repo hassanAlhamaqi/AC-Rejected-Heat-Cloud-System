@@ -12,7 +12,7 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const { name, email, fieldsOfExpertise } = event.body;
+  const { name, email, fieldsOfExpertise } = JSON.parse(event.body);
 
   try {
     let scanParams = {

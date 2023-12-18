@@ -12,7 +12,7 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const { email } = event.body;
+  const { email } = JSON.parse(event.body);
 
   try {
     // Get the user from the Users table

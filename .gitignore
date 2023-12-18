@@ -1,0 +1,12 @@
+
+add_user_lambda.zip
+add_project_lambda.zip
+add_participant_lambda.zip
+get_users_lambda.zip
+get_projects_lambda.zip
+get_project_of_interest_lambda.zip
+terraform.tfstate.backup
+terraform.tfstate
+.terraform.lock.hcl
+.terraform/providers/registry.terraform.io/hashicorp/archive/2.4.0/windows_386/terraform-provider-archive_v2.4.0_x5.exe
+.terraform/providers/registry.terraform.io/hashicorp/aws/5.31.0/windows_386/terraform-provider-aws_v5.31.0_x5.exe

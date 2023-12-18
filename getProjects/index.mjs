@@ -12,7 +12,7 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const requestBody = event.body;
+  const requestBody = JSON.parse(event.body);
   const { name, projectID, techStack, neededFields } = requestBody;
 
   const filterExpressions = [];
