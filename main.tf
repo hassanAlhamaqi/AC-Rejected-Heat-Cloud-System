@@ -186,6 +186,7 @@ resource "aws_dynamodb_table" "Projects" {
 resource "aws_apigatewayv2_api" "project_assembler_api" {
   name          = "project_assembler_api"
   protocol_type = "HTTP"
+  #target        = "[${aws_lambda_function.lambda_get_projects.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_project_of_interest.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_add_participant.invoke_arn}, ${aws_lambda_function.lambda_add_project.invoke_arn}]"
 }
 
 resource "aws_apigatewayv2_stage" "default_stage" {
@@ -244,37 +245,37 @@ resource "aws_apigatewayv2_integration" "add_project_integration" {
 # Create API Gateway V2 routes
 resource "aws_apigatewayv2_route" "get_projects_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /get-projects"
+  route_key = "POST /getProjects"
   target    = "integrations/${aws_apigatewayv2_integration.get_projects_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "add_user_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /add-user"
+  route_key = "POST /addUser"
   target    = "integrations/${aws_apigatewayv2_integration.add_user_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "get_project_of_interest_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /project-of-interest"
+  route_key = "POST /getProjectOfInterest"
   target    = "integrations/${aws_apigatewayv2_integration.get_project_of_interest_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "get_users_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /get-users"
+  route_key = "POST /getUsers"
   target    = "integrations/${aws_apigatewayv2_integration.get_users_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "add_participant_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /add-participant"
+  route_key = "POST /addParticipant"
   target    = "integrations/${aws_apigatewayv2_integration.add_participant_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "add_project_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /add-project"
+  route_key = "POST /addProject"
   target    = "integrations/${aws_apigatewayv2_integration.add_project_integration.id}"
 }
 
@@ -282,54 +283,57 @@ resource "aws_apigatewayv2_route" "add_project_route" {
 
 # Create Lambda function permissions for API Gateway
 resource "aws_lambda_permission" "get_projects_permission" {
-  statement_id  = "AllowAPIGatewayInvokeGetProjects"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_get_projects.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getProjects"
 }
 
 resource "aws_lambda_permission" "add_user_permission" {
-  statement_id  = "AllowAPIGatewayInvokeAddUser"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_add_user.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/addUser"
+
 }
 
 resource "aws_lambda_permission" "get_project_of_interest_permission" {
-  statement_id  = "AllowAPIGatewayInvokeGetProjectOfInterest"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_get_project_of_interest.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getProjectOfInterest"
 }
 
 resource "aws_lambda_permission" "get_users_permission" {
-  statement_id  = "AllowAPIGatewayInvokeGetUsers"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_get_users.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getUsers"
 }
 
 resource "aws_lambda_permission" "add_participant_permission" {
-  statement_id  = "AllowAPIGatewayInvokeAddParticipant"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_add_participant.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/addParticipant"
 }
 
 resource "aws_lambda_permission" "add_project_permission" {
-  statement_id  = "AllowAPIGatewayInvokeAddProject"
+  statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_add_project.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = aws_apigatewayv2_api.project_assembler_api.execution_arn
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/addProject"
 }
 
 /*
+aws_apigatewayv2_api.project_assembler_api.execution_arn
+target        = "[${aws_lambda_function.lambda_get_projects.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_project_of_interest.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_add_participant.invoke_arn}, ${aws_lambda_function.lambda_add_project.invoke_arn}]"
 statement_id  = "AllowExecutionFromAPIGateway"
 statement_id  = "AllowAPIGatewayInvokeGetProjects"
 */
