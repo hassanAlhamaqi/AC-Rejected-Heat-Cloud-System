@@ -8,10 +8,10 @@ provider "aws" {
 }
 
 
-data "archive_file" "get_projects_lambda_archive" {
+data "archive_file" "get_devices_lambda_archive" {
   type        = "zip"
-  source_file = "getProjects/index.mjs"
-  output_path = "get_projects_lambda.zip"
+  source_file = "getDevices/index.mjs"
+  output_path = "get_devices_lambda.zip"
 }
 
 data "archive_file" "add_user_lambda_archive" {
@@ -19,11 +19,11 @@ data "archive_file" "add_user_lambda_archive" {
   source_file = "addUser/index.mjs"
   output_path = "add_user_lambda.zip"
 }
-
-data "archive_file" "get_project_of_interest_lambda_archive" {
+################
+data "archive_file" "get_logs_lambda_archive" {
   type        = "zip"
-  source_file = "getProjectOfInterest/index.mjs"
-  output_path = "get_project_of_interest_lambda.zip"
+  source_file = "getLogs/index.mjs"
+  output_path = "get_logs_lambda.zip"
 }
 
 data "archive_file" "get_users_lambda_archive" {
@@ -32,16 +32,16 @@ data "archive_file" "get_users_lambda_archive" {
   output_path = "get_users_lambda.zip"
 }
 
-data "archive_file" "add_participant_lambda_archive" {
+data "archive_file" "set_state_lambda_archive" {
   type        = "zip"
-  source_file = "addParticipant/index.mjs"
-  output_path = "add_participant_lambda.zip"
+  source_file = "setState/index.mjs"
+  output_path = "set_state_lambda.zip"
 }
 
-data "archive_file" "add_project_lambda_archive" {
+data "archive_file" "get_state_lambda_archive" {
   type        = "zip"
-  source_file = "addProject/index.mjs"
-  output_path = "add_project_lambda.zip"
+  source_file = "getState/index.mjs"
+  output_path = "get_state_lambda.zip"
 }
 
 
@@ -78,7 +78,8 @@ resource "aws_iam_policy" "dynamodb_access_policy" {
       ],
       "Resource": [
         "${aws_dynamodb_table.Users.arn}",
-        "${aws_dynamodb_table.Projects.arn}"
+        "${aws_dynamodb_table.Devices.arn}",
+        "${aws_dynamodb_table.Logs.arn}"
         ]
     }
   ]
@@ -104,12 +105,12 @@ resource "aws_iam_role_policy_attachment" "dynamodb_access_attachment" {
 
 # Create Lambda Functions
 
-resource "aws_lambda_function" "lambda_get_projects" {
-  function_name    = "getProjects"
+resource "aws_lambda_function" "lambda_get_devices" {
+  function_name    = "getDevices"
   handler          = "index.handler"
   runtime          = "nodejs18.x"
-  filename         = data.archive_file.get_projects_lambda_archive.output_path
-  source_code_hash = data.archive_file.get_projects_lambda_archive.output_base64sha256
+  filename         = data.archive_file.get_devices_lambda_archive.output_path
+  source_code_hash = data.archive_file.get_devices_lambda_archive.output_base64sha256
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
@@ -122,12 +123,12 @@ resource "aws_lambda_function" "lambda_add_user" {
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
-resource "aws_lambda_function" "lambda_get_project_of_interest" {
-  function_name    = "getProjectOfInterest"
+resource "aws_lambda_function" "lambda_get_logs" {
+  function_name    = "getLogs"
   handler          = "index.handler"
   runtime          = "nodejs18.x"
-  filename         = data.archive_file.get_project_of_interest_lambda_archive.output_path
-  source_code_hash = data.archive_file.get_project_of_interest_lambda_archive.output_base64sha256
+  filename         = data.archive_file.get_logs_lambda_archive.output_path
+  source_code_hash = data.archive_file.get_logs_lambda_archive.output_base64sha256
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
@@ -140,21 +141,21 @@ resource "aws_lambda_function" "lambda_get_users" {
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
-resource "aws_lambda_function" "lambda_add_participant" {
-  function_name    = "addParticipant"
+resource "aws_lambda_function" "lambda_set_state" {
+  function_name    = "setState"
   handler          = "index.handler"
   runtime          = "nodejs18.x"
-  filename         = data.archive_file.add_participant_lambda_archive.output_path
-  source_code_hash = data.archive_file.add_participant_lambda_archive.output_base64sha256
+  filename         = data.archive_file.set_state_lambda_archive.output_path
+  source_code_hash = data.archive_file.set_state_lambda_archive.output_base64sha256
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
-resource "aws_lambda_function" "lambda_add_project" {
-  function_name    = "addProject"
+resource "aws_lambda_function" "lambda_get_state" {
+  function_name    = "getState"
   handler          = "index.handler"
   runtime          = "nodejs18.x"
-  filename         = data.archive_file.add_project_lambda_archive.output_path
-  source_code_hash = data.archive_file.add_project_lambda_archive.output_base64sha256
+  filename         = data.archive_file.get_state_lambda_archive.output_path
+  source_code_hash = data.archive_file.get_state_lambda_archive.output_base64sha256
   role             = aws_iam_role.iam_for_lambda.arn
 }
 
@@ -164,29 +165,37 @@ resource "aws_lambda_function" "lambda_add_project" {
 resource "aws_dynamodb_table" "Users" {
   name         = "Users"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "email"
+  hash_key     = "id"
   attribute {
-    name = "email"
+    name = "id"
     type = "S"
   }
 }
 
-resource "aws_dynamodb_table" "Projects" {
-  name         = "Projects"
+resource "aws_dynamodb_table" "Devices" {
+  name         = "Devices"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "projectID"
+  hash_key     = "id"
   attribute {
-    name = "projectID"
+    name = "id"
     type = "S"
   }
 }
 
-
+resource "aws_dynamodb_table" "Logs" {
+  name         = "Logs"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}
 
 resource "aws_apigatewayv2_api" "project_assembler_api" {
   name          = "project_assembler_api"
   protocol_type = "HTTP"
-  #target        = "[${aws_lambda_function.lambda_get_projects.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_project_of_interest.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_add_participant.invoke_arn}, ${aws_lambda_function.lambda_add_project.invoke_arn}]"
+  #target        = "[${aws_lambda_function.lambda_get_devices.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_logs.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_set_state.invoke_arn}, ${aws_lambda_function.lambda_get_state.invoke_arn}]"
 }
 
 resource "aws_apigatewayv2_stage" "default_stage" {
@@ -198,10 +207,10 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 
 
 # Create Lambda function integrations
-resource "aws_apigatewayv2_integration" "get_projects_integration" {
+resource "aws_apigatewayv2_integration" "get_devices_integration" {
   api_id             = aws_apigatewayv2_api.project_assembler_api.id
   integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.lambda_get_projects.invoke_arn
+  integration_uri    = aws_lambda_function.lambda_get_devices.invoke_arn
   integration_method = "POST"
 }
 
@@ -212,10 +221,10 @@ resource "aws_apigatewayv2_integration" "add_user_integration" {
   integration_method = "POST"
 }
 
-resource "aws_apigatewayv2_integration" "get_project_of_interest_integration" {
+resource "aws_apigatewayv2_integration" "get_logs_integration" {
   api_id             = aws_apigatewayv2_api.project_assembler_api.id
   integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.lambda_get_project_of_interest.invoke_arn
+  integration_uri    = aws_lambda_function.lambda_get_logs.invoke_arn
   integration_method = "POST"
 }
 
@@ -226,27 +235,27 @@ resource "aws_apigatewayv2_integration" "get_users_integration" {
   integration_method = "POST"
 }
 
-resource "aws_apigatewayv2_integration" "add_participant_integration" {
+resource "aws_apigatewayv2_integration" "set_state_integration" {
   api_id             = aws_apigatewayv2_api.project_assembler_api.id
   integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.lambda_add_participant.invoke_arn
+  integration_uri    = aws_lambda_function.lambda_set_state.invoke_arn
   integration_method = "POST"
 }
 
-resource "aws_apigatewayv2_integration" "add_project_integration" {
+resource "aws_apigatewayv2_integration" "get_state_integration" {
   api_id             = aws_apigatewayv2_api.project_assembler_api.id
   integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.lambda_add_project.invoke_arn
+  integration_uri    = aws_lambda_function.lambda_get_state.invoke_arn
   integration_method = "POST"
 }
 
 
 
 # Create API Gateway V2 routes
-resource "aws_apigatewayv2_route" "get_projects_route" {
+resource "aws_apigatewayv2_route" "get_devices_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /getProjects"
-  target    = "integrations/${aws_apigatewayv2_integration.get_projects_integration.id}"
+  route_key = "POST /getDevices"
+  target    = "integrations/${aws_apigatewayv2_integration.get_devices_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "add_user_route" {
@@ -255,10 +264,10 @@ resource "aws_apigatewayv2_route" "add_user_route" {
   target    = "integrations/${aws_apigatewayv2_integration.add_user_integration.id}"
 }
 
-resource "aws_apigatewayv2_route" "get_project_of_interest_route" {
+resource "aws_apigatewayv2_route" "get_logs_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /getProjectOfInterest"
-  target    = "integrations/${aws_apigatewayv2_integration.get_project_of_interest_integration.id}"
+  route_key = "POST /getLogs"
+  target    = "integrations/${aws_apigatewayv2_integration.get_logs_integration.id}"
 }
 
 resource "aws_apigatewayv2_route" "get_users_route" {
@@ -267,27 +276,27 @@ resource "aws_apigatewayv2_route" "get_users_route" {
   target    = "integrations/${aws_apigatewayv2_integration.get_users_integration.id}"
 }
 
-resource "aws_apigatewayv2_route" "add_participant_route" {
+resource "aws_apigatewayv2_route" "set_state_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /addParticipant"
-  target    = "integrations/${aws_apigatewayv2_integration.add_participant_integration.id}"
+  route_key = "POST /setState"
+  target    = "integrations/${aws_apigatewayv2_integration.set_state_integration.id}"
 }
 
-resource "aws_apigatewayv2_route" "add_project_route" {
+resource "aws_apigatewayv2_route" "get_state_route" {
   api_id    = aws_apigatewayv2_api.project_assembler_api.id
-  route_key = "POST /addProject"
-  target    = "integrations/${aws_apigatewayv2_integration.add_project_integration.id}"
+  route_key = "POST /getState"
+  target    = "integrations/${aws_apigatewayv2_integration.get_state_integration.id}"
 }
 
 
 
 # Create Lambda function permissions for API Gateway
-resource "aws_lambda_permission" "get_projects_permission" {
+resource "aws_lambda_permission" "get_devices_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_get_projects.function_name
+  function_name = aws_lambda_function.lambda_get_devices.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getProjects"
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getDevices"
 }
 
 resource "aws_lambda_permission" "add_user_permission" {
@@ -299,12 +308,12 @@ resource "aws_lambda_permission" "add_user_permission" {
 
 }
 
-resource "aws_lambda_permission" "get_project_of_interest_permission" {
+resource "aws_lambda_permission" "get_logs_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_get_project_of_interest.function_name
+  function_name = aws_lambda_function.lambda_get_logs.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getProjectOfInterest"
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getLogs"
 }
 
 resource "aws_lambda_permission" "get_users_permission" {
@@ -315,25 +324,25 @@ resource "aws_lambda_permission" "get_users_permission" {
   source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getUsers"
 }
 
-resource "aws_lambda_permission" "add_participant_permission" {
+resource "aws_lambda_permission" "set_state_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_add_participant.function_name
+  function_name = aws_lambda_function.lambda_set_state.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/addParticipant"
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/setState"
 }
 
-resource "aws_lambda_permission" "add_project_permission" {
+resource "aws_lambda_permission" "get_state_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_add_project.function_name
+  function_name = aws_lambda_function.lambda_get_state.function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/addProject"
+  source_arn    = "${aws_apigatewayv2_api.project_assembler_api.execution_arn}/*/*/getState"
 }
 
 /*
 aws_apigatewayv2_api.project_assembler_api.execution_arn
-target        = "[${aws_lambda_function.lambda_get_projects.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_project_of_interest.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_add_participant.invoke_arn}, ${aws_lambda_function.lambda_add_project.invoke_arn}]"
+target        = "[${aws_lambda_function.lambda_get_devices.invoke_arn}, ${aws_lambda_function.lambda_add_user.invoke_arn}, ${aws_lambda_function.lambda_get_logs.invoke_arn}, ${aws_lambda_function.lambda_get_users.invoke_arn}, ${aws_lambda_function.lambda_set_state.invoke_arn}, ${aws_lambda_function.lambda_get_state.invoke_arn}]"
 statement_id  = "AllowExecutionFromAPIGateway"
 statement_id  = "AllowAPIGatewayInvokeGetProjects"
 */

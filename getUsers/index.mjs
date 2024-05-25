@@ -12,41 +12,21 @@ export const handler = async (event) => {
     "Content-Type": "application/json",
   };
 
-  const { name, email, fieldsOfExpertise } = JSON.parse(event.body);
+  const { email, password } = JSON.parse(event.body);
 
   try {
     let scanParams = {
       TableName: "Users",
+      FilterExpression: "#email = :email and #password = :password",
+      ExpressionAttributeNames: {
+        "#email": "email",
+        "#password": "password",
+      },
+      ExpressionAttributeValues: {
+        ":email": email,
+        ":password": password,
+      },
     };
-
-    // Check if any parameters were provided
-    if (name || email || fieldsOfExpertise) {
-      const filterExpressions = [];
-      const expressionAttributeNames = {};
-      const expressionAttributeValues = {};
-
-      if (name) {
-        filterExpressions.push("contains(#n, :name)");
-        expressionAttributeNames["#n"] = "name";
-        expressionAttributeValues[":name"] = name;
-      }
-
-      if (email) {
-        filterExpressions.push("contains(#e, :email)");
-        expressionAttributeNames["#e"] = "email";
-        expressionAttributeValues[":email"] = email;
-      }
-
-      if (fieldsOfExpertise && fieldsOfExpertise.length > 0) {
-        filterExpressions.push("contains(#foe, :field)");
-        expressionAttributeNames["#foe"] = "fieldsOfExpertise";
-        expressionAttributeValues[":field"] = fieldsOfExpertise[0]; // Assuming only one field is provided
-      }
-
-      scanParams.FilterExpression = filterExpressions.join(" AND ");
-      scanParams.ExpressionAttributeNames = expressionAttributeNames;
-      scanParams.ExpressionAttributeValues = expressionAttributeValues;
-    }
 
     const scanCommand = new ScanCommand(scanParams);
     const scanResult = await dynamoDBDocClient.send(scanCommand);

@@ -4,31 +4,32 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 const dynamo = DynamoDBDocument.from(new DynamoDB());
 
 export const handler = async (event) => {
-  console.log(JSON.stringify(event.body));
   let body;
   let statusCode = "200";
   const headers = {
     "Content-Type": "application/json",
   };
+  console.log(event);
 
-  const { email, name, phone, projects, fieldsOfExpertise } = JSON.parse(
-    event.body
-  );
-  if (!email) {
-    return {
-      statusCode: "400",
-      msg: 'primary key "email" is not provided within the body',
-    };
-  }
   try {
+    // Get the total number of items in the table
+    const result = await dynamo.scan({
+      TableName: "Users",
+      Select: "COUNT",
+    });
+
+    const id = result.Count.toString(); // Use the count as the new id
+
+    const { email, password, name } = JSON.parse(event.body);
+
     body = await dynamo.put({
       TableName: "Users",
       Item: {
+        id,
         email,
-        name: name || "",
-        phone: phone || "",
-        projects: projects || [],
-        fieldsOfExpertise: fieldsOfExpertise || [],
+        password,
+        name,
+        active: true,
       },
     });
   } catch (err) {

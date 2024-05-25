@@ -13,40 +13,24 @@ export const handler = async (event) => {
   };
 
   const requestBody = JSON.parse(event.body);
-  const { name, projectID, techStack, neededFields } = requestBody;
+  const { user_id } = requestBody; // Extract 'user_id' parameter
 
   const filterExpressions = [];
   const expressionAttributeNames = {};
   const expressionAttributeValues = {};
 
-  if (name) {
-    filterExpressions.push("contains(#name, :name)");
-    expressionAttributeNames["#name"] = "name";
-    expressionAttributeValues[":name"] = name;
-  }
-
-  if (projectID) {
-    filterExpressions.push("contains(#projectID, :projectID)");
-    expressionAttributeNames["#projectID"] = "projectID";
-    expressionAttributeValues[":projectID"] = projectID;
-  }
-
-  if (techStack) {
-    filterExpressions.push("contains(techStack, :techStack)");
-    expressionAttributeValues[":techStack"] = techStack;
-  }
-
-  if (neededFields) {
-    filterExpressions.push("contains(neededFields, :neededFields)");
-    expressionAttributeValues[":neededFields"] = neededFields;
+  if (user_id) {
+    filterExpressions.push("contains(#user_id, :user_id)");
+    expressionAttributeNames["#user_id"] = "user_id";
+    expressionAttributeValues[":user_id"] = user_id;
   }
 
   let params = {
-    TableName: "Projects",
+    TableName: "Devices",
   };
 
-  // Check if any parameters were provided
-  if (filterExpressions.length > 0) {
+  // Check if user_id parameter was provided
+  if (user_id) {
     params = {
       ...params,
       FilterExpression: filterExpressions.join(" AND "),
